@@ -39,12 +39,14 @@ TypeScript の型安全性と保守性を高水準で維持するための汎用
 - 型引数は意味のある名称を優先し、単文字は局所的文脈でのみ許可する
 - 判別可能ユニオンの判別キーは明確な固定名（例: `kind`, `type`）で統一する
 
-## 検証
+## チェックリスト
+
+### 検証項目
 
 - 型チェックを CI に組み込み、エラーが 1 件でもある状態でのマージを禁止する
 - Lint で `no-explicit-any`、`no-unsafe-*` 系ルールを有効化する
 
-## 参考リンク
+### 参考リンク
 
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [TypeScript ESLint](https://typescript-eslint.io/)
