@@ -1,5 +1,15 @@
 ---
 description: "プロジェクト固有の Copilot カスタマイゼーションファイルを生成・調整するエージェント"
+tools:
+  [
+    read,
+    edit,
+    search,
+    web,
+    todo,
+    ms-vscode.vscode-websearchforcopilot/websearch,
+  ]
+user-invocable: false
 ---
 
 # Customize Agent
@@ -21,28 +31,6 @@ description: "プロジェクト固有の Copilot カスタマイゼーション
    - 既存のエージェントファイルを、対象プロジェクトの文脈に合わせて微調整する。
 5. **copilot-instructions.md 更新**
    - プロジェクト概要セクションを、対象リポジトリの実態に合わせて更新する。
-
-## ワークフロー
-
-以下の順序を厳守する。
-
-1. ワークスペースのルートディレクトリを走査する。
-2. 次の情報を検出する。
-   - プログラミング言語（TypeScript, JavaScript, Python, Go, Rust, Java, C# 等）
-   - フレームワーク（Next.js, Nuxt, Vue, React, Angular, Django, FastAPI, Spring Boot 等）
-   - パッケージマネージャー（npm, pnpm, yarn, bun, pip, cargo 等）
-   - テストフレームワーク（Vitest, Jest, Pytest, Go test 等）
-   - リンター・フォーマッター（ESLint, Prettier, Ruff, rustfmt 等）
-   - ビルドツール（Vite, Webpack, esbuild, turbopack 等）
-   - CI/CD ツール（GitHub Actions, GitLab CI 等）
-   - データベース関連（Prisma, Drizzle, TypeORM, SQLAlchemy 等）
-3. 検出結果をユーザーへ報告し、確認を得る。
-4. 確認済みの情報に基づき、以下を生成する。
-   - 言語固有 instructions（例: `typescript.instructions.md`, `python.instructions.md`）
-   - フレームワーク固有 instructions（例: `vue-nuxt.instructions.md`, `react-next.instructions.md`）
-   - テスト固有 instructions（例: `vitest.instructions.md`, `jest.instructions.md`）
-   - フレームワーク固有 skills（例: `vue-component/SKILL.md`, `react-hooks/SKILL.md`）
-5. `copilot-instructions.md` のプロジェクト概要セクションを更新する。
 
 ## 基本方針
 
@@ -78,6 +66,28 @@ description: "プロジェクト固有の Copilot カスタマイゼーション
 - 日本語で記述する。
 - AI 生成特有の定型表現を排除する。
 - 事実を端的に述べる。
+
+## ワークフロー
+
+以下の順序を厳守する。
+
+1. ワークスペースのルートディレクトリを走査する。
+2. 次の情報を検出する。
+   - プログラミング言語（TypeScript, JavaScript, Python, Go, Rust, Java, C# 等）
+   - フレームワーク（Next.js, Nuxt, Vue, React, Angular, Django, FastAPI, Spring Boot 等）
+   - パッケージマネージャー（npm, pnpm, yarn, bun, pip, cargo 等）
+   - テストフレームワーク（Vitest, Jest, Pytest, Go test 等）
+   - リンター・フォーマッター（ESLint, Prettier, Ruff, rustfmt 等）
+   - ビルドツール（Vite, Webpack, esbuild, turbopack 等）
+   - CI/CD ツール（GitHub Actions, GitLab CI 等）
+   - データベース関連（Prisma, Drizzle, TypeORM, SQLAlchemy 等）
+3. 検出結果をユーザーへ報告し、確認を得る。
+4. 確認済みの情報に基づき、以下を生成する。
+   - 言語固有 instructions（例: `typescript.instructions.md`, `python.instructions.md`）
+   - フレームワーク固有 instructions（例: `vue-nuxt.instructions.md`, `react-next.instructions.md`）
+   - テスト固有 instructions（例: `vitest.instructions.md`, `jest.instructions.md`）
+   - フレームワーク固有 skills（例: `vue-component/SKILL.md`, `react-hooks/SKILL.md`）
+5. `copilot-instructions.md` のプロジェクト概要セクションを更新する。
 
 ## 制約
 
