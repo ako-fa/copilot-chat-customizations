@@ -1,90 +1,50 @@
 ---
-description: 'TypeScript における型安全の徹底と落とし穴回避のためのガイドライン'
-applyTo: '**/*.ts, app/**/*.vue, **/*.{spec,test}.{ts,js,vue}'
+applyTo: "**/*.{ts,tsx}"
+description: "TypeScript コーディング規約"
 ---
 
-# TypeScript 型安全ガイドライン
+# TypeScript コーディング規約
 
-TypeScript で型安全性を最大化し、保守性を高めるための指針。
+TypeScript の型安全性と保守性を高水準で維持するための汎用ガイドライン。
 
-## General Instructions
+## 基本原則
 
-- `strict: true` を前提に設計し、暗黙の any・推論任せを避ける
-- 値の境界（入力・API・外部依存）で必ず型を与え、防御的に狭める
-- 公開 API（関数/Composable/コンポーネント Props）はすべて型注釈を付ける
-- **`any` は絶対禁止**。`eslint-disable` で回避することも禁止する
-- 実行時の失敗を早期に顕在化させる（fail fast）ため、未到達分岐は `never` で網羅性チェックする
-- 返り値は必ず記載する。たとえ `void` でも記載する
+- `strict: true` を前提とし、`strictNullChecks` を無効化しない
+- **`any` 型の使用を禁止**する
+- 境界入力（HTTP、ファイル、環境変数、外部 API など）は `unknown` で受けて検証する
+- 公開 API（関数、クラス、モジュールのエクスポート）には引数型と戻り値型を明示する
+- 未到達分岐は `never` を使って網羅性を強制する
 
-## any 禁止の徹底
+## any 禁止と unknown 活用
 
-`any` 型は型安全性を完全に破壊するため、**いかなる理由があっても使用禁止**。
+- `any` を回避するために `unknown` を使い、型ガードで安全に絞り込む
+- 「一時的な回避」を理由とした `eslint-disable` は認めない
+- 型定義が不足している場合は、`type` / `interface` / `declare module` で補完する
 
-### 禁止パターン
+## ジェネリクス活用
 
-- `eslint-disable-next-line @typescript-eslint/no-explicit-any` による許可
-- `window as any` でグローバル変数にアクセス
-- 型定義を怠って `any` に逃げる
+- 再利用可能な処理はジェネリクスで抽象化し、呼び出し側に型情報を伝播させる
+- `Promise<T>`、`Map<K, V>`、`Record<K, V>` などは型引数を省略しない
+- 汎用関数は制約付きジェネリクス（`<T extends ...>`）を優先し、過度な型アサーションを避ける
 
-### 正しい対処方法
+## 型ガード実装パターン
 
-1. 適切な型定義を作成する（`interface` / `type`）
-2. `unknown` で受けて型ガードで絞り込む
-3. 外部ライブラリは `import` で型を取得する
-4. 型定義がない場合は `declare module` で自分で定義する
+- `typeof`、`instanceof`、`in` を用いて分岐ごとに型を狭める
+- 複雑な判定はユーザー定義型ガード（`value is X`）として関数化する
+- 不正値を受けた場合は早期に例外またはエラー値を返し、fail fast を徹底する
 
-### 発見時の対応
+## 型設計と命名規則
 
-- コードレビューで発見したら**即座に拒否**する
-- 既存コードで発見したら適切な型定義に置き換えるリファクタリングを行う
-- 「時間がない」「後で直す」は理由にならない
+- 型名、インターフェース名、列挙的な型名は `PascalCase` を使用する
+- 型引数は意味のある名称を優先し、単文字は局所的文脈でのみ許可する
+- 判別可能ユニオンの判別キーは明確な固定名（例: `kind`, `type`）で統一する
 
-## 型の選択と表現
+## 検証
 
-- `unknown` を使って境界を受け、内部で絞り込む
-- リテラル型と `as const` を活用し、ユニオン/判別可能ユニオンで状態を表現する
-- `enum` より `const enum` またはリテラルユニオン + オブジェクトマップを優先する
-- `type` と `interface` は混在させず、プロジェクト方針に沿って統一する
-
-## 関数・API 設計
-
-- パラメータと戻り値に明示的な型を付ける（公開 API では必須）
-- `Promise` はジェネリクスで中身の型を指定する
-- 可変引数やオプション引数は個別プロパティのオプショナルで表現する
-- 例外は例外として扱い、必要なら Result 型で統一する
-
-## オブジェクトと配列
-
-- 配列は `T[]` で統一し、可変操作が多い場合は `readonly T[]` に揃える
-- オブジェクト公開時は `Readonly<T>` でラップし、外部からの破壊的変更を防ぐ
-- `Record<K, V>` はキーが列挙可能なときのみ使い、動的キーには型ガードを併用する
-
-## スコープと絞り込み
-
-- 可能な限り `const`、再代入が必要な場合のみ `let` を用いる
-- ユニオンは型ガード（`in`/`typeof`/`instanceof`/ユーザー定義ガード）で確実に絞り込む
-- スイッチ文は判別可能ユニオン + `default: assertNever(x)` で網羅性を検証する
-
-## Best Practices
-
-- モデル/DTO は専用ファイルに分離し、API レスポンス型とドメイン型を分ける
-- Zod などのランタイムバリデーションで外部入力を検証し、型と同期する
-- 日付や数値計算はプリミティブで渡さず、単位をコメントまたはブランド型で明示する
-- コンポーネント Props は必須/デフォルトを明示し、イベント (emits) も型で定義する
-- `JSON.parse` など不明型を返す処理の直後で型ガードまたはスキーマバリデーションを行う
-
-## Verification
-
-- 型チェック: `pnpm run typecheck`
-- Lint: `pnpm run lint`
-- 網羅性チェック: 判別ユニオンで `default` を `assertNever` にし、コンパイルエラーを確認する
-
-## コードパターン参照
-
-- 型安全なエラーハンドリングパターン: `#skill:error-handling`
+- 型チェックを CI に組み込み、エラーが 1 件でもある状態でのマージを禁止する
+- Lint で `no-explicit-any`、`no-unsafe-*` 系ルールを有効化する
 
 ## 参考リンク
 
-- [TypeScript ガイドライン (Microsoft)](https://github.com/Microsoft/TypeScript/wiki/Coding-guidelines)
-- [Google TypeScript ガイドライン](https://google.github.io/styleguide/tsguide.html)
-- [TypeScript ESLint](https://typescript-eslint.io/getting-started)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [TypeScript ESLint](https://typescript-eslint.io/)

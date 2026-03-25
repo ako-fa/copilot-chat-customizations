@@ -1,77 +1,67 @@
 ---
-description: 'Nuxt/Vue フロントエンドのパフォーマンス最適化ガイド（描画・ネットワーク・JS 実行コスト削減）'
-applyTo: 'app/**/*.vue, app/**/*.ts, app/plugins/**/*.ts, app/composables/**/*.ts'
+applyTo: "**/*.{ts,tsx,js,jsx,vue,svelte}"
+description: "パフォーマンス最適化の規約"
 ---
 
-# パフォーマンス最適化ガイドライン
+# パフォーマンス最適化の規約
 
-LCP/CLS/FID を意識し、描画・ネットワーク・スクリプトのコストを最小化するための指針。
+描画、ネットワーク、JavaScript 実行コストを継続的に削減するための汎用ガイドライン。
 
-## General Instructions
+## 基本原則
 
-- 初期表示を最優先し、折りたたみ外のリソースは遅延読込する
-- 依存を減らし、重いライブラリは代替・部分 import を検討する
-- レイアウトシフトを防ぐため、画像・動画には寸法を指定しプレースホルダーを用意する
-- 再描画が高頻度な箇所はリアクティブ依存を最小限にし、計算を `computed` / メモ化に寄せる
-- 計測なしの最適化を禁止。Before/After を計測してから採用する
+- 計測なしの最適化を禁止する
+- 初期表示に不要な処理とリソースは遅延実行する
+- 重い依存は導入前に必要性を検証し、代替案を比較する
+- 変更前後で Core Web Vitals とリソース指標を比較し、効果がない変更は採用しない
 
-## Best Practices
+## 1. バンドルサイズ最適化
 
-### ネットワーク
+- 大きなライブラリは部分読み込みとツリーシェイキングを前提に利用する
+- 未使用コード、未使用依存、デバッグコードを本番成果物から除外する
+- ポリフィルはターゲット環境に必要なものだけを配布する
+- バンドル分析を定期実施し、サイズ増加の原因を追跡する
 
-- 画像は適切なサイズとフォーマット（WebP/AVIF）で提供し、`loading="lazy"` を設定する
-- ルート分割を活用し、ページ単位で遅延ロードする（`defineAsyncComponent` や Nuxt の自動コード分割）
-- API リクエストはキャッシュ可能なものを `stale-while-revalidate` などで再利用する
+## 2. 画像最適化
 
-### 描画とレイアウト
+- 画像は表示サイズに合わせて配信し、過剰解像度を避ける
+- 可能な限り WebP/AVIF など高効率フォーマットを使用する
+- 遅延読み込みとプレースホルダーを適用し、LCP 対象は優先読み込みする
+- 画像・動画は寸法を事前指定し、レイアウトシフトを防ぐ
 
-- アニメーションは `transform` と `opacity` に限定し、`left/top` でのレイアウト再計算を避ける
-- スクロール/リサイズなど高頻度イベントは `requestAnimationFrame`、`throttle`/`debounce` で制御する
-- 大量リストはバーチャルスクロールを検討し、DOM ノード数を抑える
+## 3. コード分割
 
-### JavaScript 実行コスト
+- 画面単位、機能単位、ルート単位でコード分割を行う
+- 初期表示に不要なモジュールは動的 import で遅延ロードする
+- 低頻度機能（管理画面、分析、重いエディタ）は分離して初期バンドルに含めない
 
-- 不要な `watch` を避け、派生値は `computed` に集約する
-- 大きなオブジェクトのリアクティブ化を避け、必要なフィールドだけ `ref` 化する
-- `console` やデバッグ用コードは本番ビルドで削除する
+## 4. メモ化・キャッシュ
 
-## Common Patterns
+- 同一入力で同一結果を返す計算はメモ化する
+- API 応答はキャッシュ制御（ETag、Cache-Control、stale-while-revalidate など）を活用する
+- 再計算や再取得を減らすため、キャッシュキーと失効戦略を明示する
 
-### 遅延ローディング（良い例）
+## 5. レンダリング最適化
 
-```typescript
-import { defineAsyncComponent } from 'vue'
+- 高頻度イベント（scroll、resize、input）は `throttle` / `debounce` / `requestAnimationFrame` で制御する
+- DOM の読み取りと書き込みを分離し、レイアウトスラッシングを回避する
+- 大量データ表示では仮想化や段階描画を導入し、DOM ノード数を抑制する
+- アニメーションは `transform` と `opacity` を優先し、レイアウト再計算を伴うプロパティを避ける
 
-const AsyncHero = defineAsyncComponent(
-  () => import('@/components/features/HeroSection.vue')
-)
-```
+## 6. ネットワーク最適化
 
-### 高頻度イベントの抑制（良い例）
+- 不要リクエストを削減し、重複取得を防ぐ
+- 圧縮（gzip / brotli）、HTTP/2 以降、CDN 配信を活用する
+- API の粒度を適正化し、N+1 リクエストを防止する
+- タイムアウト、再試行、フォールバックを実装し、体感速度の劣化を抑える
 
-```typescript
-import { useThrottleFn } from '@vueuse/core'
+## 7. Core Web Vitals
 
-const onScroll = useThrottleFn(() => {
-  // スクロールに応じた処理
-}, 100)
+- LCP、INP、CLS を主要 KPI として監視する
+- 計測はラボデータ（Lighthouse など）と実ユーザーデータ（RUM）を併用する
+- リリース判定に閾値を設け、閾値超過時は修正を優先する
 
-onMounted(() => window.addEventListener('scroll', onScroll))
-onUnmounted(() => window.removeEventListener('scroll', onScroll))
-```
+## 検証
 
-### 悪い例：レイアウトスラッシング
-
-```typescript
-window.addEventListener('scroll', () => {
-  // 毎フレームで DOM 測定と書き込みを交互に行う ❌
-  const h = document.body.clientHeight
-  document.body.style.height = `${h + 1}px`
-})
-```
-
-## Verification
-
-- ビルド最適化: `pnpm run build`
-- バンドル確認: `pnpm run build` 出力サイズを確認し、不要バンドルがないかチェック
-- パフォーマンス計測: Chrome DevTools Performance/Network、Lighthouse で LCP/CLS/FID を計測（変更前後を比較）
+- ビルドごとにバンドルサイズの差分を記録する
+- Lighthouse とブラウザの Performance パネルで変更前後を比較する
+- ネットワークウォーターフォールを確認し、ボトルネックを特定する

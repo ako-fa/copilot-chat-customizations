@@ -1,115 +1,71 @@
 ---
-description: 'ESLint、Prettier、型チェック、Git フック を統合したコード品質管理ガイド。プロジェクト全体の一貫性と保守性を確保'
-applyTo: '**/*.ts, **/*.js, **/*.vue, **/*.json'
+applyTo: "**/*.{ts,tsx,js,jsx,py,go,rs,java,cs,vue,svelte}"
+description: "コード品質・設計・実装の規約"
 ---
 
-# コード品質管理ガイドライン
+# コード品質・設計・実装ガイドライン
 
-ESLint、Prettier、vue-tsc、Husky、lint-staged を統合し、継続的なコード品質管理を実現する。
+任意のプロジェクトで再利用できる、実装品質と保守性のための共通ルールを定義する。
 
-## General Instructions
+## 基本原則（詳細版）
 
-- すべてのコミット前に自動的に linting と formatting が実行される（Husky + lint-staged）
-- コード品質は自動チェックに依存し、手動レビューと組み合わせる
-- linting エラーは自動修正可能な場合は修正、手動対応が必要な場合は修正内容を明確にする
-- Prettier 設定は統一し、エディタ設定と同期させる
-- 型チェックは CI/CD パイプラインでも実行され、型安全性を保証する
+- 理論や好みより、実際のコードと実際のデータを優先して判断する
+- Fail fast を徹底し、不正な入力や想定外状態は早期に検出して即時に失敗させる
+- コード実装とテスト実装は常にセットで行う
+- 予測・推測・憶測に基づく実装を禁止し、根拠（仕様・既存実装・再現手順）を必ず確認する
 
-## ESLint 設定
+## 設計・実装要件
 
-- 基盤: `@nuxt/eslint-config`
-- `vue/multi-word-component-names`: error（例外: `default`, `index`, `error`, `app`）
-- `vue/component-name-in-template-casing`: error（PascalCase）
-- `@typescript-eslint/no-explicit-any`: warn
-- `no-console`: production では warn、development では off
+- 変更提案時は、編集対象のファイル名と行番号を明示する
+- データ永続化を扱う変更では、関連する DB テーブル名とカラム名を明示する
+- ログを追加・変更する場合は、ログの内容と出力箇所（どの処理で出すか）を明示する
+- あらゆる I/O（HTTP、DB、ファイル、キュー、キャッシュ、外部 API）を明示し、副作用の有無を示す
+- 仕様の疑問点・矛盾点・未確定事項を見つけた場合は、実装前に必ず報告する
 
-## Prettier 設定
+## 型安全性
 
-| 設定           | 値     |
-| -------------- | ------ |
-| printWidth     | 100    |
-| tabWidth       | 2      |
-| useTabs        | false  |
-| semi           | false  |
-| singleQuote    | true   |
-| trailingComma  | es5    |
-| bracketSpacing | true   |
-| arrowParens    | always |
-| endOfLine      | lf     |
+- 型を明示できる値は明示し、暗黙の型変換に依存しない
+- 型の回避（例: any 相当の乱用、型キャストの濫用）を禁止する
+- 入出力境界では必ずバリデーションを実施し、内部表現に変換してから利用する
 
-## ESLint 無視規約
+## エラーハンドリング
 
-- `eslint-disable` は**理由をコメントに明記**した場合のみ許可する
-- `eslint-disable-next-line` を使い、影響範囲を最小限にする
-- ファイル全体の `eslint-disable` は原則禁止（やむを得ない場合は `enable` で即座に戻す）
-- `@typescript-eslint/no-explicit-any` の無視は **絶対禁止**（`typescript-guidelines.instructions.md` 参照）
+- 失敗しうる処理は必ず失敗経路を実装し、成功経路と同じ粒度でテストする
+- 例外やエラー値は握りつぶさず、原因追跡に必要な情報を保持して伝播する
+- ユーザー向けメッセージと運用者向け詳細情報を分離する
+
+## 命名規則
+
+- 変数・関数・クラスは責務が一読で分かる名前にする
+- 省略語の多用を避け、ドメイン用語を統一して使う
+- 真偽値は肯定形で命名し、条件分岐の可読性を優先する
+
+## 関数設計
+
+- 1 関数 1 責務を維持し、副作用を最小化する
+- 引数が増えすぎる場合は構造化し、呼び出し側で意味が分かる形にする
+- 返り値の契約（成功時・失敗時）を明確にし、呼び出し側で曖昧さを残さない
 
 ## コメント規約
 
-### ドキュメントブロック（JSDoc/TSDoc）
+- 公開 API には目的・前提・制約を日本語で記載する
+- 複雑な分岐やアルゴリズムは、実装理由（Why）を日本語で補足する
+- コードを読めば分かる説明的コメント（What のみ）は書かない
 
-- 公開 API（関数/Composable/コンポーネント Props）に必須
-- 目的・内容・注意事項を日本語で記述する（What を記述）
+## 品質ゲート
 
-### 実装コメント
+- 静的解析、整形、型チェック、テストを自動実行できる状態を維持する
+- 自動修正可能な違反は修正し、手動対応が必要な違反は修正方針を残す
+- CI で再現できる実行コマンドを維持し、ローカルとの差異をなくす
 
-- 複雑性がわずかでもある場合に追加する
-- 実装理由・分岐条件を日本語で記述する（Why を記述）
-- 「何をしているか」のコメントは不要（コードから明らか）
+## 実装前チェック
 
-## ファイルサイズ
+- 仕様と既存実装を確認し、断定できる事実と仮定を分離したか
+- 変更対象、影響範囲、I/O、ログ方針を明文化したか
+- 不明点・矛盾点を報告し、解消後に実装へ進む状態になっているか
 
-- 1 ファイルに複数の責務を混在させない
-- コンポーネントが大きくなったら Composable に抽出する
+## 実装後チェック
 
-## Git フック自動化
-
-### pre-commit（Husky + lint-staged）
-
-.editorconfig .env .env.example .env.local .env.staging .git .github .gitignore .husky .nuxt .nuxtrc .output .pnpm-store .vscode README.md app coverage dist doc eslint.config.mts lint-staged.config.mts node_modules nuxt.config.ts package.json pnpm-lock.yaml pnpm-workspace.yaml prettier.config.ts public stylelint.config.mjs tsconfig.json tsconfig.tsbuildinfo vanta.d.ts vitest.config.mts :-abranch
-
-1. ESLint による自動修正
-2. Prettier による自動フォーマット
-3. vue-tsc による型チェック
-
-### pre-push
-
-push 前に全プロジェクト対象の型チェック: `vue-tsc --noEmit`
-
-## Verification
-
-```bash
-# ESLint チェック
-pnpm run lint
-
-# 型チェック
-pnpm run typecheck
-
-# フォーマット確認
-pnpm run format
-
-# テスト実行
-pnpm run test
-```
-
-## よくあるエラーと対処
-
-| エラー              | 原因                            | 対処法                                       |
-| ------------------- | ------------------------------- | -------------------------------------------- |
-| `Prettier mismatch` | ESLint と Prettier 設定の不一致 | `pnpm run format` を実行                     |
-| `Missing type`      | TypeScript 型定義不足           | `pnpm run typecheck` で確認                  |
-| `Rule error`        | ESLint ルール違反               | `pnpm run lint --fix` で修正、または手動対応 |
-| `Vue syntax error`  | テンプレート構文エラー          | vue-tsc の警告を確認                         |
-
-## ワークフロー参照
-
-- コードレビューワークフロー: `#agent:review`
-- デバッグワークフロー: `#agent:debug`
-
-## 参考リンク
-
-- [ESLint 公式ドキュメント](https://eslint.org/)
-- [Prettier 公式ドキュメント](https://prettier.io/)
-- [TypeScript 公式ドキュメント](https://www.typescriptlang.org/)
-- [Husky GitHub](https://typicode.github.io/husky/)
-- [lint-staged GitHub](https://github.com/lint-staged/lint-staged)
+- 型チェック、静的解析、テストが通過しているか
+- エラー経路と境界条件を含むテストを追加したか
+- 命名、責務分離、副作用の管理が規約に沿っているか

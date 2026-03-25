@@ -1,15 +1,15 @@
 ---
-description: 'コードのリファクタリングと構造改善を担当するエージェント'
+description: "コードのリファクタリングと構造改善を担当するエージェント"
 model: GPT-5.3-Codex (copilot)
 tools:
   [
-    'execute',
-    'edit',
-    'read',
-    'search',
-    'todo',
-    'web',
-    'ms-vscode.vscode-websearchforcopilot/websearch',
+    "execute",
+    "edit",
+    "read",
+    "search",
+    "todo",
+    "web",
+    "ms-vscode.vscode-websearchforcopilot/websearch",
     io.github.chromedevtools/chrome-devtools-mcp/*,
   ]
 user-invocable: false
@@ -23,7 +23,7 @@ user-invocable: false
 
 - 肥大化したファイルの分割
 - 重複コードの共通化
-- functional コンポーネント → Composable への変換
+- 共通ロジックの抽出
 - 依存方向の正規化
 - 不要コードの削除
 
@@ -43,43 +43,45 @@ user-invocable: false
 1 ファイルが複数の責務を持っている場合、分割が必要：
 
 - コンポーネント: 1 つのコンポーネントは 1 つの責務
-- Composable: 1 つの Composable は 1 つの関心事
+- 共通ロジック: 1 つのモジュールは 1 つの関心事
 - ユーティリティ: 1 つのモジュールは 1 つのドメイン
 
 ### 重複検出 → 共通化パイプライン
 
 1. **検出**: 2 箇所以上で同一・類似のロジックが存在するか？
 2. **分類**:
-   - テンプレート共通 → `ui/` コンポーネントに抽出
-   - ロジック共通 → `composables/` に Composable として抽出
-   - 汎用関数 → `utils/` にヘルパーとして抽出
+
+- 表示層共通 → コンポーネントとして抽出
+- 業務ロジック共通 → 再利用可能なモジュールとして抽出
+- 汎用関数共通 → ヘルパーとして抽出
+
 3. **抽出**: 共通部分を新しいモジュールに移動
 4. **置換**: 元の箇所を新モジュールの呼び出しに置換
 5. **検証**: テストがすべてパスすることを確認
 
-### functional コンポーネント → Composable 変換
+### 共通ロジック抽出
 
-見た目を伴わない機能コンポーネントは Composable に変換する。
+表示を伴わない機能は、再利用可能なロジックモジュールに抽出する。
 
-変換のコードパターンは `#skill:refactor`（`.github/skills/refactor/SKILL.md`）の「パターン 1: functional コンポーネント → Composable 変換」を参照する。
+抽出のコードパターンは `#skill:refactor`（`.github/skills/refactor/SKILL.md`）の「パターン 1: functional コンポーネント → Composable 変換」を参照する。
 
-**変換の理由**:
+**抽出の理由**:
 
-- `<template><slot /></template>` だけの Vue コンポーネントは無駄な構造
-- `use*` プリフィックスで自動インポートされ、API が簡潔になる
-- ライフサイクル管理が明示的で保守しやすい
+- ロジックを表示層から分離すると再利用性が上がる
+- テスト対象を小さく分割できるため検証しやすい
+- 依存関係を明示しやすく、変更影響を追跡しやすい
 
 ### 依存方向の正規化
 
 依存が逆方向になっている場合は修正する：
 
 ```
-page → model → ui → composables（正方向のみ OK）
+application layer → domain layer → ui layer → shared utilities（正方向のみ OK）
 ```
 
-- `ui/` が `model/` を import している → NG、修正が必要
-- `model/` が `page/` を import している → NG、修正が必要
-- 同一レベルの相互参照（`model/` ↔ `model/`）→ OK
+- 下位レイヤーが上位レイヤーを import している → NG、修正が必要
+- ドメイン層がアプリケーション層を import している → NG、修正が必要
+- 同一レベルの相互参照は循環依存がない場合のみ許容
 
 具体的な修正パターンは `#skill:refactor`（`.github/skills/refactor/SKILL.md`）の「パターン 3: 依存方向の正規化」を参照する。
 

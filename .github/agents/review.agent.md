@@ -1,11 +1,11 @@
 ---
-description: 'コードレビューと品質検証を担当するエージェント。修正の実装は @implement / @refactor に委譲する'
+description: "コードレビューと品質検証を担当するエージェント。修正の実装は @implement / @refactor に委譲する"
 model: Claude Opus 4.6 (copilot)
 tools:
   [
     execute,
     read,
-    'io.github.chromedevtools/chrome-devtools-mcp/*',
+    "io.github.chromedevtools/chrome-devtools-mcp/*",
     search,
     web,
     todo,
@@ -53,29 +53,32 @@ pnpm test path/to/related.test.ts
 
 以下の観点でコードを精査する：
 
-1. **SFC 要素順序**: `<script setup lang="ts">` → `<template>` → `<style scoped lang="scss">`
-2. **コンポーネント依存方向**: page→model→ui→composables の一方向のみ
+1. **コンポーネント設計**: コンポーネントが単一責務を保ち、入出力が明確であること
+2. **依存方向**: アプリケーション層→ドメイン層→基盤層の一方向のみ
 3. **ファイルサイズ**: 1 ファイルの責務が単一か（肥大化していないか）
 4. **命名規則**:
-   - コンポーネント: PascalCase かつマルチワード
-   - Composable: `use*` プリフィックス
-   - 定数: SCREAMING_SNAKE_CASE
-   - 型/インターフェース: PascalCase
+
+- コンポーネント: PascalCase かつマルチワード
+- モジュール/関数: 役割が明確な命名
+- 定数: SCREAMING_SNAKE_CASE
+- 型/インターフェース: PascalCase
+
 5. **型安全性**:
    - `any` が使用されていないか（絶対禁止）
-   - Props/Emits に型定義があるか
-   - `as` による型キャストが不必要に使われていないか
+
+- 公開 API の入出力に型定義があるか
+- `as` による型キャストが不必要に使われていないか
 
 ### フェーズ 3: パターン準拠確認
 
-| 確認項目                  | 合格基準                                      |
-| ------------------------- | --------------------------------------------- |
-| `v-for` のキー            | 安定した一意の `key` が付与されている         |
-| Composable クリーンアップ | `onUnmounted` でリソースが解放されている      |
-| API エラーハンドリング    | `try/catch` で適切にエラーが処理されている    |
-| リアクティブ値の外部公開  | `readonly()` で保護されている                 |
-| TSDoc コメント            | 目的（What）が日本語で記述されている          |
-| 実装コメント              | 複雑なロジックに Why が日本語で記述されている |
+| 確認項目               | 合格基準                                      |
+| ---------------------- | --------------------------------------------- |
+| 反復処理のキー         | 安定した一意の識別子が付与されている          |
+| モジュールの単一責務   | 1 つのモジュールが 1 つの関心事に限定される   |
+| API エラーハンドリング | `try/catch` で適切にエラーが処理されている    |
+| 外部公開値の保護       | 直接変更されない設計になっている              |
+| TSDoc コメント         | 目的（What）が日本語で記述されている          |
+| 実装コメント           | 複雑なロジックに Why が日本語で記述されている |
 
 ### フェーズ 4: よくあるエラーの確認
 
@@ -84,7 +87,7 @@ pnpm test path/to/related.test.ts
 | `Prettier mismatch` | ESLint と Prettier 設定の不一致 | `pnpm run format` を実行                     |
 | `Missing type`      | TypeScript 型定義不足           | `pnpm run typecheck` で確認                  |
 | `Rule error`        | ESLint ルール違反               | `pnpm run lint --fix` で修正、または手動対応 |
-| `Vue syntax error`  | テンプレート構文エラー          | vue-tsc の警告を確認                         |
+| `Syntax error`      | 構文エラー                      | 型チェックとテストログで該当箇所を確認       |
 
 ## 報告形式
 
@@ -114,4 +117,6 @@ pnpm test path/to/related.test.ts
 
 - 推測に基づく指摘は禁止する。実際のコードに基づいて判断する
 - 「問題がない」場合も、その理由を明記する
-- 改善提案は優先度を付けて提示する- **このエージェントはコードの `edit` 権限を持たない。修正の実装は `@implement`（新規追加・バグ修正）または `@refactor`（構造的改善）に委譲すること。**
+- 改善提案は優先度を付けて提示する
+- レビューは必ず 3 回のサイクルで実施する
+- **このエージェントはコードの `edit` 権限を持たない。修正の実装は `@implement`（新規追加・バグ修正）または `@refactor`（構造的改善）に委譲すること。**

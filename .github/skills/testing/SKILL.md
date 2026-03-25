@@ -1,249 +1,123 @@
 ---
-description: 'Vitest テスト実装の再利用可能なコードパターン集'
+description: "テストコードの実装パターンとテンプレート集"
 ---
 
 # Testing Skill
 
-Vitest 4.0.18 を使用したテスト実装の再利用可能なコードパターン。
+任意のテストフレームワークで再利用できる、テスト実装の基本パターンを定義する。
 
-## テストファイル構造テンプレート
+## テストの基本構造（AAA）
 
-```typescript
-/**
- * [対象名] のテスト
- *
- * 責務:
- * - [テスト対象の責務を箇条書き]
- *
- * テスト観点:
- * - [正常系のテストケース]
- * - [異常系のテストケース]
- * - [境界値のテストケース]
- */
+すべてのテストは以下の順序で記述する。
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+1. Arrange: 前提条件と入力データを準備する
+2. Act: テスト対象を 1 つだけ実行する
+3. Assert: 期待結果を明示的に検証する
 
-// モックは最上位で定義（vi.mock は巻き上げられる）
-vi.mock('@/composables/useSomeComposable', () => ({
-  useSomeComposable: vi.fn(() => ({ value: 'mocked' })),
-}))
-
-describe('[対象名]', () => {
-  beforeEach(() => {
-    vi.clearAllMocks() // 各テスト前にモックをリセット
-  })
-
-  describe('正常系', () => {
-    it('期待する動作の日本語説明', () => {
-      // 前提条件: テストデータの準備
-      const input = '芝野太郎'
-
-      // 実行: 対象を呼び出し
-      const result = targetFunction(input)
-
-      // 期待: 結果を検証
-      expect(result).toBe('期待値')
-    })
-  })
-})
-```
-
-## Composable テストパターン
+### テンプレート
 
 ```typescript
-/**
- * useSomeFeature Composable テスト
- *
- * 責務:
- * - [Composable の主要な責務]
- *
- * テスト観点:
- * - API 公開: 公開される関数/プロパティが正しく提供される
- * - 初期化: 正常に初期化され、エラーが発生しない
- * - エラーハンドリング: 異常時に適切にエラーをスローする
- */
+describe("対象機能", () => {
+  it("条件Xのとき、結果Yを返す", () => {
+    // Arrange
+    const input = { value: "sample" };
 
-import { useSomeFeature } from '@/composables/useSomeFeature'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
+    // Act
+    const result = targetFunction(input);
 
-vi.mock('#app', () => ({
-  useNuxtApp: vi.fn(() => ({
-    $plugin: mockPlugin,
-  })),
-}))
-
-describe('useSomeFeature', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  describe('初期化', () => {
-    it('正常に初期化される', () => {
-      // 前提条件: 必要なパラメータを準備
-      const target = ref<HTMLElement | null>(document.createElement('div'))
-
-      // 実行: Composable を呼び出し
-      const result = useSomeFeature(target)
-
-      // 期待: 公開 API が返される
-      expect(result).toBeDefined()
-      expect(typeof result.someMethod).toBe('function')
-    })
-  })
-
-  describe('プラグイン初期化チェック', () => {
-    it('プラグインが初期化されていない場合、エラーをスロー', () => {
-      // 前提条件: プラグインがない状態を設定
-      vi.mocked(useNuxtApp).mockReturnValue({
-        $plugin: undefined,
-      } as TestNuxtApp)
-
-      const target = ref<HTMLElement | null>(null)
-
-      // 実行 & 期待: エラーをスローする
-      expect(() => useSomeFeature(target)).toThrow('Plugin not initialized')
-    })
-  })
-})
+    // Assert
+    expect(result).toEqual({ ok: true });
+  });
+});
 ```
 
-## Vue コンポーネントテストパターン
+## テストケースの命名規則
+
+- 形式は「条件 + 操作 + 期待結果」に統一する
+- 曖昧な名前（例: `works`, `test1`）を禁止する
+- 失敗時に原因が推測できる粒度で記述する
+
+### 例
+
+- 正常系: `有効な入力を渡したとき、ユーザーを作成する`
+- 異常系: `必須項目が空のとき、バリデーションエラーを返す`
+- 境界値: `文字数が上限ちょうどのとき、保存に成功する`
+
+## モック戦略
+
+- 外部依存（DB、HTTP、時刻、乱数、ファイル I/O）のみモックする
+- ドメインロジック本体はモックしない
+- 1 テストごとにモック状態を初期化し、テスト相互依存を禁止する
+- 呼び出し回数だけではなく、入出力の妥当性を検証する
+
+## テーブルドリブンテスト
+
+同じロジックを複数条件で検証する場合はテーブル化する。
 
 ```typescript
-import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
-import BaseButton from '@/components/ui/BaseButton/BaseButton.vue'
+const cases = [
+  { name: "空文字", input: "", expected: "必須エラー" },
+  { name: "正常値", input: "abc", expected: "OK" },
+  { name: "上限超過", input: "a".repeat(201), expected: "長さ超過" },
+];
 
-describe('BaseButton', () => {
-  describe('Props の表示', () => {
-    it('label prop が正しく表示される', () => {
-      // 前提条件: label を指定してマウント
-      const wrapper = mount(BaseButton, {
-        props: { label: '送信' },
-      })
+for (const c of cases) {
+  it(`${c.name}の場合、${c.expected}になる`, () => {
+    // Arrange
+    const input = c.input;
 
-      // 期待: ラベルが DOM に表示される
-      expect(wrapper.text()).toContain('送信')
-    })
-  })
+    // Act
+    const result = validateName(input);
 
-  describe('イベントの発火', () => {
-    it('クリック時に click イベントが発火する', async () => {
-      // 前提条件: コンポーネントをマウント
-      const wrapper = mount(BaseButton, {
-        props: { label: '送信' },
-      })
-
-      // 実行: ボタンをクリック
-      await wrapper.trigger('click')
-
-      // 期待: click イベントが 1 回発火
-      expect(wrapper.emitted('click')).toHaveLength(1)
-    })
-  })
-})
+    // Assert
+    expect(result).toBe(c.expected);
+  });
+}
 ```
 
-## テーブルドリブンテスト（境界値）
+## エッジケース網羅方針
 
-```typescript
-describe('境界値テスト', () => {
-  const testCases = [
-    { 入力: '', 期待: '必須エラー', 説明: '空文字列' },
-    { 入力: 'abc', 期待: 'OK', 説明: '正常値' },
-    { 入力: 'あ'.repeat(201), 期待: '長さ超過', 説明: '最大文字数超過' },
-  ]
+- 最小値、最大値、境界値を必ず含める
+- `null`、`undefined`、空配列、空文字を検証する
+- 例外経路、タイムアウト、リトライ失敗を検証する
+- 並行実行・重複送信・順序逆転など、実運用で起こる競合を検証する
 
-  testCases.forEach(({ 入力, 期待, 説明 }) => {
-    it(`${説明}（入力: "${入力}"）の場合、${期待}`, () => {
-      // 実行: バリデーション実行
-      const result = validateName(入力)
+## 実装詳細に依存しない原則
 
-      // 期待
-      expect(result).toBe(期待)
-    })
-  })
-})
-```
-
-## Nuxt コンポーネントスタブ化
-
-```typescript
-const wrapper = mount(Navigation, {
-  global: {
-    stubs: {
-      NuxtLink: {
-        template: '<a :to="to"><slot /></a>',
-        props: ['to'],
-      },
-      NuxtImg: {
-        template: '<img :src="src" :alt="alt" />',
-        props: ['src', 'alt', 'format'],
-      },
-    },
-  },
-})
-```
+- private 関数、内部状態、内部メソッド呼び出し順に依存しない
+- 公開 API、戻り値、状態変化、外部可観測な副作用で検証する
+- リファクタリング耐性を優先する
 
 ## 非同期処理テスト
 
-```typescript
-import { flushPromises } from '@vue/test-utils'
+- 非同期完了を待ってから検証する
+- 成功と失敗の両経路を検証する
+- 時刻依存処理はテスト用クロックで固定する
 
-it('データ取得後に表示が更新される', async () => {
-  // 前提条件: モックデータを準備
-  const mockData = { id: 1, name: 'テストユーザー' }
-  vi.mocked(useFetch).mockResolvedValue(mockData)
+## テストデータ管理
 
-  // 実行: コンポーネントをマウント
-  const wrapper = mount(UserProfile)
-  await flushPromises() // すべての Promise が解決されるまで待つ
+- 意味のある固定値を使い、意図不明なランダム値を避ける
+- 重複データはファクトリ関数またはフィクスチャへ集約する
+- 個人情報・機密情報をテストデータへ使用しない
+- テストデータ生成ロジック自体を複雑化しない
 
-  // 期待: 取得したデータが表示される
-  expect(wrapper.text()).toContain('テストユーザー')
-})
-```
+## カバレッジ目標
 
-## 実装詳細に依存しないテスト
+- 全体カバレッジ 100% を目標とする
+- 重要モジュールは分岐カバレッジを優先して 100% を維持する
+- カバレッジ指標のみで品質を判断せず、アサーションの妥当性を必ず確認する
 
-```typescript
-// ❌ 悪い例: 内部メソッドに依存
-it('内部メソッドの動作', () => {
-  const wrapper = mount(Component)
-  ;(wrapper.vm as any).internalMethod() // 実装詳細に依存
-})
+## 実施手順
 
-// ✅ 良い例: ユーザー行動で検証
-it('ボタンクリック時の動作', async () => {
-  // 前提条件: コンポーネントをマウント
-  const wrapper = mount(Component)
+1. 失敗するテストを先に書く
+2. 最小実装でテストを通す
+3. リファクタリングして重複を削除する
+4. 全テスト実行で回帰を確認する
 
-  // 実行: ユーザー行動をシミュレート
-  await wrapper.find('button').trigger('click')
+## レビューチェックリスト
 
-  // 期待: 表示結果で検証
-  expect(wrapper.text()).toContain('クリック済み')
-})
-```
-
-## テスト実装ルール
-
-| ルール                   | 内容                                            |
-| ------------------------ | ----------------------------------------------- |
-| **ファイル名**           | `*.test.ts`                                     |
-| **テスト名**             | 日本語で記述する                                |
-| **AAA パターン**         | 前提条件 → 実行 → 期待 のコメントを必ず付ける   |
-| **テストデータ**         | 意味が即座に明確になる日本語文字列を使用する    |
-| **Nuxt コンポーネント**  | NuxtLink, NuxtImg はスタブ化する                |
-| **モックリセット**       | `beforeEach` で `vi.clearAllMocks()` を実行する |
-| **実装詳細への依存禁止** | `(wrapper.vm as any)` のようなアクセスは禁止    |
-
-## テスト実行コマンド
-
-```bash
-pnpm test                       # 全テスト実行
-pnpm test:watch                 # ウォッチモード
-pnpm test:coverage              # カバレッジ計測
-pnpm test path/to/test.test.ts  # 特定ファイル（-- を挟まない）
-```
+- テスト名だけで仕様意図を説明できるか
+- 正常系、異常系、境界値が揃っているか
+- モック対象が外部依存に限定されているか
+- 実装詳細依存の脆い検証になっていないか
+- 失敗時メッセージで原因を即特定できるか

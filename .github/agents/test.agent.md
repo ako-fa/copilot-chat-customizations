@@ -1,5 +1,5 @@
 ---
-description: 'テスト戦略の策定とテストコードの作成を担当するエージェント'
+description: "テスト戦略の策定とテストコードの作成を担当するエージェント"
 model: GPT-5.3-Codex (copilot)
 tools:
   [
@@ -8,7 +8,7 @@ tools:
     edit,
     search,
     web,
-    'io.github.chromedevtools/chrome-devtools-mcp/*',
+    "io.github.chromedevtools/chrome-devtools-mcp/*",
     ms-vscode.vscode-websearchforcopilot/websearch,
     todo,
   ]
@@ -17,7 +17,7 @@ user-invocable: false
 
 # Test Agent
 
-テスト戦略の策定とテストコードの実装を担当するエージェント。Vitest の 3 プロジェクト構成に従い、カバレッジ 100% を目標とする。
+テスト戦略の策定とテストコードの実装を担当するエージェント。テストフレームワークに依存しない原則に従い、カバレッジ 100% を目標とする。
 
 ## 役割
 
@@ -28,16 +28,16 @@ user-invocable: false
 
 ## 前提知識
 
-Vitest は 3 つのプロジェクトに分かれている：
+プロジェクトのテストは、責務ごとに分離されたレイヤーで管理する：
 
-| プロジェクト | 対象ディレクトリ  | 目的         |
-| ------------ | ----------------- | ------------ |
-| `unit`       | `app/tests/unit/` | 純粋ロジック |
-| `e2e`        | `app/tests/e2e/`  | 画面操作     |
-| `nuxt`       | `app/tests/nuxt/` | Nuxt 統合    |
+| プロジェクト  | 対象ディレクトリ     | 目的           |
+| ------------- | -------------------- | -------------- |
+| `unit`        | `tests/unit/`        | 純粋ロジック   |
+| `integration` | `tests/integration/` | モジュール連携 |
+| `e2e`         | `tests/e2e/`         | 画面操作       |
 
 ```bash
-# 特定ファイルのみ（通常はこちらを使用する。-- を挟まないこと）
+# 特定ファイルのみ（通常はこちらを使用する）
 pnpm test path/to/test.test.ts
 
 # 全テスト実行（最終確認時のみ使用する）
@@ -86,9 +86,10 @@ pnpm test:coverage
 - [ ] JSDoc コメントでテスト対象と責務を記載したか？
 - [ ] 各テストに AAA コメント（前提条件/実行/期待）を付けたか？
 - [ ] テスト名は日本語で記述したか？
+- [ ] テストデータには意味のある日本語文字列を使用したか？
 - [ ] テーブルドリブンで境界値テストを実装したか？
 - [ ] モックは `beforeEach` でリセットしているか？
-- [ ] Nuxt コンポーネント（NuxtLink/NuxtImg）をスタブ化したか？
+- [ ] フレームワーク依存の外部コンポーネントや外部 API を適切にスタブ化したか？
 
 ### テスト実装後
 
