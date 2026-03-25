@@ -1,0 +1,17 @@
+# デフォルト: テキストファイルはコミット時に LF に正規化
+* text=auto eol=lf
+
+# Windows バッチファイルなど、CRLF が必須なもの
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# バイナリファイル
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff2 binary
+*.ttf binary
+*.mp4 binary
+*.webp binary
