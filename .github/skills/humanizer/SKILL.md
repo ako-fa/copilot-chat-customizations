@@ -1,4 +1,5 @@
 ---
+name: humanizer
 description: "日本語テキストから AI 生成特有のパターンを検出・除去し、人間が書いた自然な文章に近づける Humanizer スキル"
 ---
 

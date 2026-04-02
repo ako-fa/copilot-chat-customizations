@@ -1,4 +1,5 @@
 ---
+name: lenis
 description: 'Lenis スムーズスクロールの再利用可能なコードパターン集'
 ---
 

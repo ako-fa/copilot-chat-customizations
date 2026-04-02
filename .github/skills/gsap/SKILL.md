@@ -1,4 +1,5 @@
 ---
+name: gsap
 description: 'GSAP アニメーションの再利用可能なコードパターン集'
 ---
 

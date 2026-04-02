@@ -1,4 +1,5 @@
 ---
+name: error-handling
 description: "エラーハンドリングの設計パターンと実装テンプレート"
 ---
 

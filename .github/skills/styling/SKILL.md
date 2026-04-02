@@ -1,4 +1,5 @@
 ---
+name: styling
 description: 'Tailwind CSS + SCSS スタイリングの再利用可能なコードパターン集'
 ---
 

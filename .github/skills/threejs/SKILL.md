@@ -1,4 +1,5 @@
 ---
+name: threejs
 description: 'Three.js 3D グラフィックスの再利用可能なコードパターン集'
 ---
 

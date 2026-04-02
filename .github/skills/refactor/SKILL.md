@@ -1,4 +1,5 @@
 ---
+name: refactor
 description: "リファクタリングの判断基準・手順・パターン集"
 ---
 
