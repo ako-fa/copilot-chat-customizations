@@ -73,7 +73,7 @@ description: "GitHub Copilot カスタム指示 — 汎用テンプレート"
 
 ### 日本語文章の品質基準（Humanizer）
 
-AI が日本語の文章（ドキュメント・報告書・コメント・コミットメッセージ等）を出力する際は、`.github/skills/humanizer/SKILL.md` を厳守する
+AI が日本語の文章を出力する際は、`.github/skills/humanizer/SKILL.md` を厳守する
 
 ---
 
