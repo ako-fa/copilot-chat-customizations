@@ -1,13 +1,13 @@
 ---
-description: 'Nuxt 4 の設定管理ガイド。環境別設定・プラグイン・ミドルウェア・モジュールの統一的な実装方法'
-applyTo: 'nuxt.config.ts, app.config.ts, .env*, server/**, middleware/**, plugins/**'
+description: "Nuxt 4 の設定管理ガイド。環境別設定・プラグイン・ミドルウェア・モジュールの統一的な実装方法"
+applyTo: "nuxt.config.ts, app.config.ts, .env*, server/**, middleware/**, plugins/**"
 ---
 
 # Nuxt 設定管理ガイドライン
 
 Nuxt 4 の設定を安全かつ保守性高く管理するためのガイド。
 
-## General Instructions
+## 基本原則
 
 - 設定は `nuxt.config.ts` に集約し、環境別の分岐は `process.env.NODE_ENV` に限定する
 - シークレット・API キーは環境変数に外出しし、コードに埋め込まない
@@ -38,7 +38,7 @@ Nuxt 4 の設定を安全かつ保守性高く管理するためのガイド。
 - シークレットは `NUXT_` で始まり、サーバーのみでアクセス可能
 - `.env` ファイルに記載し、`.gitignore` に追加する
 
-## Best Practices
+## ベストプラクティス
 
 - プラグイン実行順序が重要な場合は、ファイル名の数字 prefix でソートする（`00-global.ts` → `10-auth.ts`）
 - ミドルウェアはページアクセス前にガード（認証など）を実装する
@@ -46,12 +46,12 @@ Nuxt 4 の設定を安全かつ保守性高く管理するためのガイド。
 - 本番環境では `routeRules` でコンテンツキャッシュを設定する
 - 開発環境と本番環境で異なる設定が必要な場合は、`process.env.NODE_ENV` で分岐させる
 
-## Verification
+## 参考リンク
+
+- [Nuxt4 ドキュメント(設定ファイル)](https://nuxt.com/docs/4.x/getting-started/configuration)
+
+## チェックリスト
 
 - 設定チェック: `pnpm run build` でビルド可能か確認する
 - 環境変数: `NUXT_PUBLIC_*` がクライアントで利用できるか、`NUXT_` がサーバーのみかを確認する
 - プラグイン: ブラウザコンソールで実行順序・エラーがないか確認する
-
-## 参考リンク
-
-- [Nuxt4 ドキュメント(設定ファイル)](https://nuxt.com/docs/4.x/getting-started/configuration)

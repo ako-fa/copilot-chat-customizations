@@ -1,13 +1,11 @@
 ---
-description: 'フロントエンドアセット（画像・フォント・ビデオ）の管理・最適化・配信ガイド'
-applyTo: 'public/**, app/assets/**, **/*.{jpg,jpeg,png,gif,webp,svg,woff2,ttf,mp4}'
+description: "フロントエンドアセット（画像・フォント・ビデオ）の管理・最適化・配信ガイド"
+applyTo: "public/**, app/assets/**, **/*.{jpg,jpeg,png,gif,webp,svg,woff2,ttf,mp4}"
 ---
 
 # アセット管理ガイドライン
 
-# 1. gsap.set の mock.calls → as GsapCallArgs[]------持するための指針。
-
-## General Instructions
+## 基本原則
 
 - アセットは `public/` または `app/assets/` に配置し、用途別にディレクトリで整理する
 - 画像は複数サイズとフォーマット（WebP/AVIF）を提供し、`<picture>` で段階的フォールバック
@@ -58,7 +56,7 @@ app/assets/
 - ポスター画像を必ず設定する
 - 外部ホスト（YouTube など）の利用を優先的に検討する
 
-## Verification
+## チェックリスト
 
 - 画像最適化: `pnpm run build` 後、`.nuxt/dist` のアセットサイズを確認する
 - 寸法指定: `<img>` / `<NuxtImg>` に `width`/`height` が指定されているか確認する

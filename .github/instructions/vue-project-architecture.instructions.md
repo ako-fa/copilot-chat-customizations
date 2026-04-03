@@ -1,58 +1,17 @@
 ---
-description: 'Vue 3 と Nuxt 4 におけるコンポーネント設計とプロジェクト構成の宣言的ルール'
-applyTo: 'app/**/*.vue, app/**/*.ts, app/composables/**/*.ts, app/pages/**/*.vue, app/layouts/**/*.vue'
+description: 'Vue 3 + Nuxt 4 プロジェクトの構造設計ルール'
+applyTo: 'app/**/*.vue, app/**/*.ts, app/pages/**/*.vue, app/layouts/**/*.vue'
 ---
 
-# Vue 3 + Nuxt 4 ベストプラクティス
+# Vue 3 + Nuxt 4 プロジェクト構造設計ルール
 
-## 必須ルール
+## 基本原則
 
-### SFC（単一ファイルコンポーネント）
+- コンポーネントをカテゴリ（page / model / ui）で分類し、依存方向を一方向に保つ
+- ページの実体は `components/page/` に配置し、`pages/*.vue` はルーティング定義のみとする
+- 見た目を伴わない機能は Composable で実装する
 
-- `<script setup lang="ts">` を必ず使用する
-- 要素順は **`<script>` → `<template>` → `<style>`** を厳守する
-- `<style>` にはデフォルトで `scoped` を付与する
-
-### 型安全
-
-- Props、Emits、Expose は TypeScript で明示的に型定義する
-- すべての Props に型・必須/デフォルトを与える
-- `any` は絶対禁止（詳細は `typescript-guidelines.instructions.md` を参照）
-
-### リアクティビティ
-
-- 単純な値は `ref` を使用する（`reactive` より推奨）
-- `computed` はキャッシュ対象の導出値に使用する
-- `watch` は副作用（API 呼び出し等）が必要な監視に使用する
-- 外部に公開する ref 値は `readonly()` で保護する
-
-### テンプレート
-
-- `v-for` には **必ず** 安定した `key` を付与する
-- 同一要素で `v-if` と `v-for` を併用しない（computed で事前フィルタする）
-- コンポーネント名は SFC では PascalCase、DOM テンプレートでは kebab-case
-- テンプレート式を複雑にしない（computed/method に移す）
-- `v-html` はサニタイズ済みかつ信頼できる文字列に限定する
-
-### Props 設計
-
-- Props は不変（immutable）として扱う。直接変更は禁止
-- 変更は `emit` 経由で親に委譲する
-
-### イベント
-
-- イベント名は kebab-case
-- 複雑なペイロードは型定義する
-
-### テスト
-
-- 何かを実装したら、**必ず** テストも実装する
-- 修正した場合もテストの修正を行う
-- テストが未実装のファイルを発見したら直ちにテストを実装する
-
-## コンポーネント分類ルール
-
-### カテゴリ
+## コンポーネント分類
 
 | カテゴリ   | 定義                                           | ディレクトリ        |
 | ---------- | ---------------------------------------------- | ------------------- |
@@ -127,19 +86,15 @@ app/
  types/                 # TypeScript 型定義
 ```
 
-## コードパターン参照
-
-- コンポーネントパターン: `#skill:vue-component`
-- Composable パターン: `#skill:composable`
-
-## ワークフロー参照
-
-- 実装ワークフロー: `#agent:implement`
-- リファクタリングワークフロー: `#agent:refactor`
-
 ## 参考リンク
 
-- [Vue 3 公式ドキュメント](https://vuejs.org/)
 - [Nuxt 4 公式ドキュメント](https://nuxt.com/docs/4.x/getting-started/introduction)
-- [Vue 3 Composition API](https://vuejs.org/api/composition-api-setup.html)
 - [SPA Component の推しディレクトリ構成](https://zenn.dev/knowledgework/articles/99f8047555f700)
+
+## チェックリスト
+
+- コンポーネントが適切なカテゴリ（page / model / ui）に配置されているか
+- 依存方向が page → model → ui → composables の一方向を守っているか
+- 命名規則（PascalCase、use prefix 等）に準拠しているか
+- `pages/*.vue` がルーティング定義のみになっているか
+- 自動インポート対象外の `utils/` は明示的にインポートしているか

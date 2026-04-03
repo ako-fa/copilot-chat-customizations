@@ -1,17 +1,15 @@
 ---
-description: 'Vue3 / Nuxt4 プロジェクトにおける SCSS と Tailwind CSS の役割分担ルール'
-applyTo: '**/*.vue, **/*.scss, tailwind.config.ts'
+description: "Vue3 / Nuxt4 プロジェクトにおける SCSS と Tailwind CSS の役割分担ルール"
+applyTo: "**/*.vue, **/*.scss, tailwind.config.ts"
 ---
 
 # スタイルガイド：SCSS vs Tailwind CSS 役割分担
 
-## 対象技術
+## 基本原則
 
 - **CSS フレームワーク**: Tailwind CSS v4（Oxide エンジン、Vite プラグイン統合）
 - **CSS プリプロセッサ**: SCSS（Dart Sass）
-- **アニメーション**: GSAP + Lenis
-
-## 基本原則
+- **アニメーション**: GSAP 3
 
 ### 1. スペーシング・レイアウトは Tailwind が優先
 
@@ -82,6 +80,7 @@ applyTo: '**/*.vue, **/*.scss, tailwind.config.ts'
 ## GSAP との連携ルール
 
 - アニメーション対象要素の初期値は `:style` で設定する（SCSS/Tailwind ではない）
+- GSAP で動かす値は CSS カスタムプロパティ（`--*`）を介して管理してよい
 - GSAP 制御要素に CSS `transition` を混在させない
 - 状態制御クラス（`is-animating` 等）のみ SCSS で定義可能
 - `will-change` はパフォーマンス最適化として SCSS で設定可能
@@ -112,3 +111,12 @@ app/
 - [Tailwind CSS v4 リリース](https://tailwindcss.com/blog/tailwindcss-v4)
 - [SCSS 公式ドキュメント](https://sass-lang.com/documentation/)
 - [Vue3 Style Guide](https://vuejs.org/style-guide/)
+
+## チェックリスト
+
+- Tailwind と SCSS の担当領域が判定フローチャートに従って分離されているか
+- レイアウト・スペーシング・レスポンシブ対応に Tailwind を使用しているか
+- 複雑なアニメーション・複雑なセレクタ・`calc()` / `clamp()` には SCSS を使用しているか
+- GSAP との連携で初期値設定と CSS カスタムプロパティ活用の方針が守られているか
+- GSAP 制御要素に CSS `transition` を混在させていないか
+- ファイル構成のルール（`app/assets/style/scss` と `app/assets/style/css`）に従っているか
