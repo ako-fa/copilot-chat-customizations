@@ -7,6 +7,14 @@ description: "Vue 3 コンポーネント設計の再利用可能なコードパ
 
 Vue 3 + Nuxt 4 におけるコンポーネント設計の再利用可能なコードパターン。
 
+## 基本原則
+
+- SFC は `<script setup lang="ts">` → `<template>` → `<style scoped lang="scss">` の順で記述する
+- Props は TypeScript で型定義し、`defineProps<T>()` または `withDefaults(defineProps<T>(), ...)` で必須/デフォルトを明示する
+- イベントは `defineEmits<T>()` で型安全に定義する
+- コンポーネント名は PascalCase とし、SFC では PascalCase、DOM テンプレートでは kebab-case を使い分ける
+- 接頭辞ルール（`Base` / `App` / `The`）を用途に応じて使い分ける
+
 ## SFC 標準構造
 
 ```vue
@@ -191,3 +199,22 @@ const handleIncrement = (): void => {
 - `Base*`: 再利用可能な基本 UI 要素（BaseButton, BaseCard）
 - `App*`: アプリケーション全体で使う単一例（AppHeader, AppFooter）
 - `The*`: ページ固有の親レベル（TheHeroSection, TheSidebar）
+
+## 実施手順
+
+1. コンポーネントの責務と粒度を決定する
+2. 接頭辞ルールに従って命名する
+3. SFC 標準構造に従い `<script setup>` / `<template>` / `<style>` を配置する
+4. Props と Emits を型安全に定義する
+5. テンプレートルールに従って実装する
+
+## チェックリスト
+
+- H2 の冒頭に「基本原則」を配置しているか
+- SFC 標準構造（`<script setup lang="ts">` → `<template>` → `<style scoped lang="scss">`）を守っているか
+- Props が型定義され、必須/デフォルトが明示されているか
+- Emits が `defineEmits<T>()` で型安全に定義されているか
+- 命名規則（PascalCase、必要箇所で kebab-case）が守られているか
+- 接頭辞ルール（`Base` / `App` / `The`）が用途に沿っているか
+- 「実施手順」が番号付きリストで記載されているか
+- 「チェックリスト」が最終セクションに配置されているか
