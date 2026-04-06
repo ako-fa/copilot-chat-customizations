@@ -76,4 +76,5 @@ description: "GitHub Copilot カスタム指示 — 汎用テンプレート"
 
 ### 日本語文章の品質基準（Humanizer）
 
-AI が日本語の文章を出力する際は、`.github/skills/humanizer/SKILL.md` を厳守する
+暗黙適用ルールは `instructions/humanizer.instructions.md` で自動ロードされる。
+明示的なリライト依頼時は `skills/humanizer/SKILL.md` のフルプロセスを使用する。
