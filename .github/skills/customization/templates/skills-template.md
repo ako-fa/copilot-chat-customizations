@@ -58,7 +58,7 @@ description: "[このスキルの概要を1文で記述]"
 
 スキルはフォルダ単位で管理する。`SKILL.md` がエントリポイントとなり、追加リソースを同一フォルダに配置できる。
 
-```
+```text
 .github/skills/
   skill-name/
     SKILL.md            # エントリポイント（必須）
